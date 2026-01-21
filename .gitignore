@@ -1,0 +1,8 @@
+# Entorno virtual
+venv/
+
+# Variables de entorno (secrets)
+.env
+
+# Cache de Python
+__pycache__/
