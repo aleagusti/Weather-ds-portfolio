@@ -1,8 +1,16 @@
-# Entorno virtual
+# Virtual environments
 venv/
 
-# Variables de entorno (secrets)
+# Environment variables
 .env
 
-# Cache de Python
+# Data (raw files should not be versioned)
+data/raw/*
+!data/raw/.gitkeep
+
+# Python cache
 __pycache__/
+.ipynb_checkpoints/
+
+# OS files
+.DS_Store
