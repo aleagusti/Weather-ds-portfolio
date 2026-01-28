@@ -13,15 +13,20 @@ END_DATE = "2024-12-31"
 TIMEZONE = "UTC"
 
 DAILY_VARIABLES = [
-    "temperature_2m_max",
-    "temperature_2m_min",
-    "temperature_2m_mean",
-    "precipitation_sum",
-    "relative_humidity_2m_mean",
-    "surface_pressure_mean",
-    "wind_speed_10m_mean",
-    "cloud_cover_mean"
+   "temperature_2m_max",
+   "temperature_2m_min",
+   "temperature_2m_mean",
+   "rain_sum",
+   "precipitation_sum",
+   "precipitation_hours",
+   "maximum_wind_speed_10m",
+   "dominant_wind_direction_10m",
+   "sunrise",
+   "sunset",
+   "shortwave_radiation_sum",
+   "weathercode"
 ]
+
 
 BASE_URL = "https://archive-api.open-meteo.com/v1/archive"
 
