@@ -1,0 +1,38 @@
+{
+  "EXP1_base": [
+    "temperature_2m_mean"
+  ],
+  "EXP2_base_season": [
+    "temperature_2m_mean"
+  ],
+  "EXP3_memory": [
+    "precip_lag_1",
+    "precip_lag_3",
+    "precip_lag_7",
+    "precip_roll_3",
+    "precip_roll_7"
+  ],
+  "EXP4_season_memory": [
+    "precip_lag_1",
+    "precip_lag_3",
+    "precip_lag_7",
+    "precip_roll_3",
+    "precip_roll_7"
+  ],
+  "EXP5_base_memory": [
+    "temperature_2m_mean",
+    "precip_lag_1",
+    "precip_lag_3",
+    "precip_lag_7",
+    "precip_roll_3",
+    "precip_roll_7"
+  ],
+  "EXP6_full": [
+    "temperature_2m_mean",
+    "precip_lag_1",
+    "precip_lag_3",
+    "precip_lag_7",
+    "precip_roll_3",
+    "precip_roll_7"
+  ]
+}

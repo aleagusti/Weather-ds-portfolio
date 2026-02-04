@@ -41,3 +41,9 @@ Weather-ds-portfolio/
 │
 ├── requirements.txt
 └── README.md
+
+## Environment setup
+
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt

@@ -138,3 +138,14 @@ def select_feature_subset(df: pd.DataFrame, feature_list: list[str], target_col:
     Select features + target and drop rows with missing values.
     """
     return df[feature_list + [target_col]].dropna()
+
+RAW_COLUMNS = {
+    "temp_max": "temperature_2m_max",
+    "temp_min": "temperature_2m_min",
+    "temp_mean": "temperature_2m_mean",
+    "precip": "precipitation_sum",
+    "wind_max": "wind_speed_10m_max",
+    "wind_dir": "wind_direction_10m_dominant",
+    "radiation": "shortwave_radiation_sum",
+    "weather_code": "weather_code",
+}

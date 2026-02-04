@@ -1,0 +1,2 @@
+experiment,model,MAE,RMSE,R2,n_train,n_test,train_end
+EXP6_full,RandomForest,2.1374868009385994,5.625186373784195,0.6569744413130242,10213,2557,2017-12-31
