@@ -17,21 +17,9 @@ Design principles:
 
 from __future__ import annotations
 
-import sys
-from pathlib import Path
 import pandas as pd
 
-# =========================
-# Paths
-# =========================
-
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
-RAW_PATH = PROJECT_ROOT / "data" / "raw" / "open_meteo_miami_daily.csv"
-PROCESSED_PATH = PROJECT_ROOT / "data" / "processed" / "open_meteo_miami_daily_v001.csv"
-
-# Allow importing from src/
-sys.path.append(str(PROJECT_ROOT))
-
+from src.config import RAW_DATASET, PROCESSED_DATASET, PROCESSED_DIR
 from src.features import (
     ensure_sorted_by_date,
     build_base_features,
@@ -44,17 +32,11 @@ from src.features import (
 # Dataset construction
 # =========================
 
-def build_dataset() -> pd.DataFrame:
-    if not RAW_PATH.exists():
-        raise FileNotFoundError(f"Raw dataset not found: {RAW_PATH}")
-
-    # Load raw data
-    df = pd.read_csv(RAW_PATH, parse_dates=["date"])
-
-    # Ensure temporal ordering
+def build_dataset(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Build processed dataset with engineered features.
+    """
     df = ensure_sorted_by_date(df, date_col="date")
-
-    # Apply feature blocks
     df = build_base_features(df)
     df = build_seasonal_features(df)
     df = build_memory_features(df)
@@ -72,14 +54,18 @@ def build_dataset() -> pd.DataFrame:
 def main() -> None:
     print("[START] Building processed dataset")
 
-    df = build_dataset()
+    if not RAW_DATASET.exists():
+        raise FileNotFoundError(f"Raw dataset not found: {RAW_DATASET}")
 
-    PROCESSED_PATH.parent.mkdir(parents=True, exist_ok=True)
-    df.to_csv(PROCESSED_PATH, index=False)
+    df_raw = pd.read_csv(RAW_DATASET, parse_dates=["date"])
+    df_processed = build_dataset(df_raw)
 
-    print(f"[DONE] Processed dataset saved to {PROCESSED_PATH}")
-    print(f"Rows: {len(df)} | Columns: {df.shape[1]}")
-    print(df.head())
+    PROCESSED_DIR.mkdir(parents=True, exist_ok=True)
+    df_processed.to_csv(PROCESSED_DATASET, index=False)
+
+    print(f"[DONE] Processed dataset saved to {PROCESSED_DATASET}")
+    print(f"Rows: {len(df_processed)} | Columns: {df_processed.shape[1]}")
+    print(df_processed.head())
 
 
 if __name__ == "__main__":

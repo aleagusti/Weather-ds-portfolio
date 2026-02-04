@@ -1,6 +1,6 @@
 import requests
 import pandas as pd
-from pathlib import Path
+from src.config import RAW_DATASET, RAW_DIR
 
 # =========================
 # Configuration
@@ -13,18 +13,18 @@ END_DATE = "2024-12-31"
 TIMEZONE = "UTC"
 
 DAILY_VARIABLES = [
-   "temperature_2m_max",
-   "temperature_2m_min",
-   "temperature_2m_mean",
-   "rain_sum",
-   "precipitation_sum",
-   "precipitation_hours",
-   "wind_speed_10m_max",
-   "wind_direction_10m_dominant",
-   "sunrise",
-   "sunset",
-   "shortwave_radiation_sum",
-   "weather_code",
+    "temperature_2m_max",
+    "temperature_2m_min",
+    "temperature_2m_mean",
+    "rain_sum",
+    "precipitation_sum",
+    "precipitation_hours",
+    "wind_speed_10m_max",
+    "wind_direction_10m_dominant",
+    "sunrise",
+    "sunset",
+    "shortwave_radiation_sum",
+    "weather_code",
 ]
 
 HOURLY_VARIABLES = [
@@ -36,26 +36,20 @@ HOURLY_VARIABLES = [
 
 BASE_URL = "https://archive-api.open-meteo.com/v1/archive"
 
-OUTPUT_PATH = Path("data/raw/open_meteo_miami_daily.csv")
-
-
 # =========================
 # Data fetch
 # =========================
 
-def fetch_daily_weather():
+def fetch_daily_weather() -> pd.DataFrame:
     params = {
         "latitude": LATITUDE,
         "longitude": LONGITUDE,
         "start_date": START_DATE,
         "end_date": END_DATE,
-        "daily": DAILY_VARIABLES,   
+        "daily": DAILY_VARIABLES,
         "hourly": HOURLY_VARIABLES,
         "timezone": TIMEZONE,
     }
-
-    if not isinstance(params["daily"], list) or len(params["daily"]) == 0:
-        raise ValueError("'daily' must be a non-empty list of variable names")
 
     response = requests.get(BASE_URL, params=params)
 
@@ -69,8 +63,9 @@ def fetch_daily_weather():
         raise
 
     data = response.json()
-    df = pd.DataFrame(data["daily"])
-    df["date"] = pd.to_datetime(df["time"]).dt.date
+
+    df_daily = pd.DataFrame(data["daily"])
+    df_daily["date"] = pd.to_datetime(df_daily["time"]).dt.date
 
     df_hourly = pd.DataFrame(data["hourly"])
     df_hourly["time"] = pd.to_datetime(df_hourly["time"])
@@ -84,30 +79,33 @@ def fetch_daily_weather():
         .rename(columns={var: f"{var}_mean" for var in HOURLY_VARIABLES})
     )
 
-    df = df.merge(hourly_means, on="date", how="left")
-
+    df = df_daily.merge(hourly_means, on="date", how="left")
     return df
-
 
 # =========================
 # Script entry point
 # =========================
 
 def main():
-    print("[START] Fetching daily weather data from Open-Meteo")
+    print("[STEP 1] Fetching raw data")
+
+    if RAW_DATASET.exists():
+        print("[SKIP] Raw dataset already exists. Using cached file.")
+        print(f"Path: {RAW_DATASET}")
+        return
+
+    RAW_DIR.mkdir(parents=True, exist_ok=True)
 
     df = fetch_daily_weather()
 
     if df.empty:
         raise RuntimeError("Downloaded dataset is empty")
 
-    OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
-    df.to_csv(OUTPUT_PATH, index=False)
+    df.to_csv(RAW_DATASET, index=False)
 
-    print(f"[DONE] Dataset saved to {OUTPUT_PATH}")
+    print(f"[DONE] Dataset saved to {RAW_DATASET}")
     print(f"Rows: {len(df)} | Columns: {df.shape[1]}")
     print(df.head())
-
 
 if __name__ == "__main__":
     main()

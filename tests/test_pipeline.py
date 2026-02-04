@@ -1,5 +1,6 @@
 import subprocess
 from pathlib import Path
+from src.config import RAW_DATASET, PROCESSED_DIR, METRICS_FILE, PREDICTIONS_FILE
 
 def test_pipeline_runs_without_error():
     result = subprocess.run(
@@ -12,7 +13,7 @@ def test_pipeline_runs_without_error():
 
 
 def test_pipeline_outputs_exist():
-    assert Path("data/raw/open_meteo_miami_daily.csv").exists()
-    assert any(Path("data/processed").glob("open_meteo_miami_daily_v*.csv"))
-    assert any(Path("data/results").glob("metrics_*.csv"))
-    assert any(Path("data/results").glob("predictions_*.csv"))
+    assert Path(RAW_DATASET).exists()
+    assert any(Path(PROCESSED_DIR).glob("open_meteo_miami_daily_v*.csv"))
+    assert any(Path(METRICS_FILE).parent.glob("metrics_*.csv"))
+    assert any(Path(PREDICTIONS_FILE).parent.glob("predictions_*.csv"))

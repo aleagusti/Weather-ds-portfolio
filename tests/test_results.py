@@ -1,9 +1,14 @@
 import pandas as pd
 from pathlib import Path
 
+from src.config import (
+    METRICS_FILE,
+    PREDICTIONS_FILE,
+)
+
 
 def test_metrics_file_created():
-    path = Path("data/results/metrics_regression_v001.csv")
+    path = METRICS_FILE
     assert path.exists()
 
     df = pd.read_csv(path)
@@ -12,7 +17,7 @@ def test_metrics_file_created():
 
 
 def test_predictions_file_created():
-    path = Path("data/results/predictions_best_v001.csv")
+    path = PREDICTIONS_FILE
     assert path.exists()
 
     df = pd.read_csv(path)

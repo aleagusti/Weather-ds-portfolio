@@ -12,22 +12,20 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.linear_model import LinearRegression, Ridge, Lasso
 
-import sys
-from pathlib import Path
+from .config import (
+    PROCESSED_DATASET,
+    RESULTS_DIR,
+    METRICS_FILE,
+    PREDICTIONS_FILE,
+    FEATURE_SETS_FILE,
+    VERSION,
+    TRAIN_SPLIT_DATE,
+)
 
 
 # =========================
 # Paths / Config
 # =========================
-
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
-sys.path.append(str(PROJECT_ROOT))
-PROCESSED_PATH = PROJECT_ROOT / "data" / "processed" / "open_meteo_miami_daily_v001.csv"
-
-OUT_DIR = PROJECT_ROOT / "data" / "results"
-METRICS_PATH = OUT_DIR / "metrics_regression_v001.csv"
-PRED_BEST_PATH = OUT_DIR / "predictions_best_v001.csv"
-FEATURESETS_PATH = OUT_DIR / "feature_sets_v001.json"
 
 BEST_EXPERIMENT = {
     "name": "EXP6_full",
@@ -60,7 +58,7 @@ BEST_EXPERIMENT = {
 # IMPORTANT:
 # This assumes your repo has src/features.py and it is importable as a module.
 # If you get "No module named 'src'", see Step 6 below.
-from src.features import (
+from .features import (
     ensure_sorted_by_date,
     build_base_features,
     build_seasonal_features,
@@ -123,14 +121,14 @@ def fit_predict(
 # Main modeling logic
 # =========================
 
-def main(train_end: str = "2017-12-31") -> None:
-    OUT_DIR.mkdir(parents=True, exist_ok=True)
+def main(train_end: str = TRAIN_SPLIT_DATE) -> None:
+    RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 
     # 1) Load processed dataset
-    if not PROCESSED_PATH.exists():
-        raise FileNotFoundError(f"Processed dataset not found: {PROCESSED_PATH}")
+    if not PROCESSED_DATASET.exists():
+        raise FileNotFoundError(f"Processed dataset not found: {PROCESSED_DATASET}")
 
-    df = pd.read_csv(PROCESSED_PATH, parse_dates=["date"])
+    df = pd.read_csv(PROCESSED_DATASET, parse_dates=["date"])
     df = ensure_sorted_by_date(df, date_col="date")
 
     # 2) Build feature blocks (same logic as notebook, but clean)
@@ -177,17 +175,22 @@ def main(train_end: str = "2017-12-31") -> None:
         "train_end": train_end,
     }
 
-    pd.DataFrame([metrics_row]).to_csv(METRICS_PATH, index=False)
-
+    # Build predictions dataframe (test set only)
     pred_df = test_df[["date", TARGET]].copy()
     pred_df["y_pred"] = y_pred
     pred_df["error"] = pred_df["y_pred"] - pred_df[TARGET]
 
-    pred_df.to_csv(PRED_BEST_PATH, index=False)
+    # Save outputs
+    pd.DataFrame([metrics_row]).to_csv(METRICS_FILE, index=False)
+    pred_df.to_csv(PREDICTIONS_FILE, index=False)
+
+    with open(FEATURE_SETS_FILE, "w") as f:
+        json.dump(BEST_EXPERIMENT, f, indent=2)
 
     print("[DONE] Modeling finished")
-    print(f"Saved metrics -> {METRICS_PATH}")
-    print(f"Saved predictions -> {PRED_BEST_PATH}")
+    print(f"Saved metrics -> {METRICS_FILE}")
+    print(f"Saved predictions -> {PREDICTIONS_FILE}")
+    print(f"Saved feature sets -> {FEATURE_SETS_FILE}")
     print("Executed experiment:", BEST_EXPERIMENT["name"])
 
 

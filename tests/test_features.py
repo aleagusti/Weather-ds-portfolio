@@ -1,5 +1,7 @@
 import pandas as pd
 import numpy as np
+import pytest
+
 from src.features import (
     ensure_sorted_by_date,
     add_temperature_range,
@@ -8,36 +10,63 @@ from src.features import (
     add_precipitation_rolling,
 )
 
-def test_ensure_sorted_by_date():
-    df = pd.DataFrame({
-        "date": ["2021-01-02", "2021-01-01"],
-        "x": [1, 2]
-    })
-    df_sorted = ensure_sorted_by_date(df, date_col="date")
-    assert df_sorted["date"].iloc[0] < df_sorted["date"].iloc[1]
+# =========================
+# Fixtures
+# =========================
 
-def test_temperature_range():
-    df = pd.DataFrame({
-        "temperature_2m_max": [20],
-        "temperature_2m_min": [10]
+@pytest.fixture
+def sample_df():
+    """
+    Minimal, deterministic daily dataset for feature tests.
+    """
+    return pd.DataFrame({
+        "date": pd.date_range("2020-01-01", periods=10, freq="D"),
+        "temperature_2m_max": np.arange(10) + 25,
+        "temperature_2m_min": np.arange(10) + 15,
+        "precipitation_sum": np.arange(10) * 0.5,
     })
-    df = add_temperature_range(df)
+
+
+# =========================
+# Tests
+# =========================
+
+def test_ensure_sorted_by_date(sample_df):
+    shuffled = sample_df.sample(frac=1, random_state=42)
+    sorted_df = ensure_sorted_by_date(shuffled)
+
+    assert sorted_df["date"].is_monotonic_increasing
+    assert len(sorted_df) == len(sample_df)
+
+
+def test_add_temperature_range(sample_df):
+    df = add_temperature_range(sample_df)
+
     assert "temp_range" in df.columns
-    assert df["temp_range"].iloc[0] == 10
+    expected = df["temperature_2m_max"] - df["temperature_2m_min"]
+    assert (df["temp_range"] == expected).all()
 
-def test_cyclical_encoding():
-    df = pd.DataFrame({"date": ["2021-06-01"]})
-    df = add_cyclical_dayofyear(df, date_col="date")
-    assert "doy_sin" in df.columns and "doy_cos" in df.columns
 
-def test_precip_lags():
-    df = pd.DataFrame({"precipitation_sum": [0, 1, 2, 3]})
-    df = add_precipitation_lags(df, lags=[1])
+def test_add_cyclical_dayofyear(sample_df):
+    df = add_cyclical_dayofyear(sample_df)
+
+    assert "doy_sin" in df.columns
+    assert "doy_cos" in df.columns
+    assert df["doy_sin"].between(-1, 1).all()
+    assert df["doy_cos"].between(-1, 1).all()
+
+
+def test_add_precipitation_lags(sample_df):
+    df = add_precipitation_lags(sample_df, lags=[1, 3])
+
     assert "precip_lag_1" in df.columns
+    assert "precip_lag_3" in df.columns
     assert df["precip_lag_1"].isna().iloc[0]
+    assert df["precip_lag_3"].isna().iloc[:3].all()
 
-def test_precip_rolling():
-    df = pd.DataFrame({"precipitation_sum": [1, 2, 3, 4]})
-    df = add_precipitation_rolling(df, windows=[2])
-    assert "precip_roll_2" in df.columns
-    assert df["precip_roll_2"].iloc[1] == 3
+
+def test_add_precipitation_rolling(sample_df):
+    df = add_precipitation_rolling(sample_df, windows=[3])
+
+    assert "precip_roll_3" in df.columns
+    assert df["precip_roll_3"].isna().iloc[:2].all()

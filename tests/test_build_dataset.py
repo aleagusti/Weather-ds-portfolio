@@ -1,26 +1,25 @@
-from pathlib import Path
-import pandas as pd
 import subprocess
+import pandas as pd
+
+from src.config import PROCESSED_DATASET
 
 
 def test_build_dataset_creates_file():
-    output_path = Path("data/processed/open_meteo_miami_daily_v001.csv")
-
     # borrar si existe
-    if output_path.exists():
-        output_path.unlink()
+    if PROCESSED_DATASET.exists():
+        PROCESSED_DATASET.unlink()
 
-    # ejecutar script
+    # ejecutar script como módulo
     subprocess.run(
-        ["python", "src/build_dataset.py"],
+        ["python", "-m", "src.build_dataset"],
         check=True
     )
 
-    assert output_path.exists(), "Processed dataset was not created"
+    assert PROCESSED_DATASET.exists(), "Processed dataset was not created"
 
 
 def test_build_dataset_has_expected_columns():
-    df = pd.read_csv("data/processed/open_meteo_miami_daily_v001.csv")
+    df = pd.read_csv(PROCESSED_DATASET)
 
     expected_cols = [
         "date",
