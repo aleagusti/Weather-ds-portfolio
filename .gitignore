@@ -7,9 +7,15 @@ test_env/
 # Environment variables
 .env
 
-# Data (raw files should not be versioned)
+# Data artifacts (should not be versioned)
 data/raw/*
+data/processed/*
+data/results/*
+
+# Keep directory structure
 !data/raw/.gitkeep
+!data/processed/.gitkeep
+!data/results/.gitkeep
 
 # Python cache
 __pycache__/
