@@ -1,5 +1,11 @@
 from __future__ import annotations
 
+"""
+This script runs the final selected experiment using a fixed 80/20 temporal split.
+Model and feature comparisons are performed in notebooks; this script executes
+the chosen production configuration only.
+"""
+
 import json
 from dataclasses import dataclass
 from pathlib import Path
@@ -19,7 +25,7 @@ from .config import (
     PREDICTIONS_FILE,
     FEATURE_SETS_FILE,
     VERSION,
-    TRAIN_SPLIT_DATE,
+    TEST_FRACTION,
 )
 
 
@@ -28,18 +34,18 @@ from .config import (
 # =========================
 
 BEST_EXPERIMENT = {
-    "name": "EXP6_full",
+    "name": "EXP5_base_memory",
     "features": [
         "temperature_2m_mean",
         "relative_humidity_2m_mean",
         "cloud_cover_mean",
-        "month",
-        "dayofyear",
         "precip_lag_1",
         "precip_lag_3",
         "precip_lag_7",
         "precip_roll_3",
         "precip_roll_7",
+        "doy_sin",
+        "doy_cos",
     ],
     "model": "RandomForest",
     "model_params": {
@@ -56,8 +62,9 @@ BEST_EXPERIMENT = {
 # =========================
 
 # IMPORTANT:
-# This assumes your repo has src/features.py and it is importable as a module.
-# If you get "No module named 'src'", see Step 6 below.
+# This script assumes it is executed as a module from the project root, e.g.:
+#   python -m src.modeling_regression
+# or via run_pipeline.sh, which sets the correct PYTHONPATH.
 from .features import (
     ensure_sorted_by_date,
     build_base_features,
@@ -79,16 +86,6 @@ def evaluate(y_true: np.ndarray, y_pred: np.ndarray) -> Dict[str, float]:
         "RMSE": rmse(y_true, y_pred),
         "R2": float(r2_score(y_true, y_pred)),
     }
-
-def time_split(df: pd.DataFrame, date_col: str, train_end: str) -> Tuple[pd.DataFrame, pd.DataFrame]:
-    """
-    Split by date: everything <= train_end goes to train, the rest to test.
-    train_end format: "YYYY-MM-DD"
-    """
-    cutoff = pd.to_datetime(train_end)
-    train_df = df[df[date_col] <= cutoff].copy()
-    test_df = df[df[date_col] > cutoff].copy()
-    return train_df, test_df
 
 
 @dataclass
@@ -121,7 +118,7 @@ def fit_predict(
 # Main modeling logic
 # =========================
 
-def main(train_end: str = TRAIN_SPLIT_DATE) -> None:
+def main(test_fraction: float = TEST_FRACTION) -> None:
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 
     # 1) Load processed dataset
@@ -140,12 +137,14 @@ def main(train_end: str = TRAIN_SPLIT_DATE) -> None:
     # Adjust list if you add more lags/rolls later.
     df = df.dropna().reset_index(drop=True)
 
-    TARGET = "precipitation_sum"
+    split_idx = int(len(df) * (1 - test_fraction))
+    train_df = df.iloc[:split_idx].copy()
+    test_df = df.iloc[split_idx:].copy()
 
-    # 5) Train/test split (temporal)
-    train_df, test_df = time_split(df, date_col="date", train_end=train_end)
     if len(train_df) == 0 or len(test_df) == 0:
-        raise RuntimeError("Train/test split produced empty set. Check train_end or date range.")
+        raise RuntimeError("Train/test split produced empty set. Check TEST_FRACTION.")
+
+    TARGET = "precipitation_sum"
 
     features = [c for c in BEST_EXPERIMENT["features"] if c in df.columns]
 
@@ -172,7 +171,7 @@ def main(train_end: str = TRAIN_SPLIT_DATE) -> None:
         "R2": metrics["R2"],
         "n_train": len(train_df),
         "n_test": len(test_df),
-        "train_end": train_end,
+        "test_fraction": test_fraction,
     }
 
     # Build predictions dataframe (test set only)

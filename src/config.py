@@ -25,7 +25,10 @@ PROCESSED_DATASET = PROCESSED_DIR / f"{DATASET_NAME}_{VERSION}.csv"
 TARGET_COL = "precipitation_sum"
 DATE_COL = "date"
 
-TRAIN_SPLIT_DATE = "2017-12-31"
+# =========================
+# Temporal split configuration
+# =========================
+TEST_FRACTION = 0.20
 
 # =========================
 # Outputs

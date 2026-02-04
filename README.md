@@ -1,57 +1,10 @@
-Objetive
-
-Predict daily precipitation using physical meteorological variables from an open, production-grade weather API.
-
-Data source:
-Open-Meteo Historical Weather API
-
-Frequency unit:
-Daily
-
-Location:
-Miami, FL (primera iteración)
-
-Target:
-precipitation_sum (mm)
-
-Features:
-temperature (mean / max / min)
-relative humidity
-surface pressure
-wind speed
-cloud cover
-lagged precipitation
-rolling aggregates
-
-Weather-ds-portfolio/
-│
-├── src/
-│   ├── fetch_open_meteo_daily.py
-│   ├── features.py
-│   └── utils.py
-│
-├── data/
-│   ├── raw/
-│   └── processed/
-│
-├── notebooks/
-│   ├── 01_eda.ipynb
-│   ├── 02_feature_engineering.ipynb
-│   └── 03_modeling.ipynb
-│
-├── requirements.txt
-└── README.md
-
-## Environment setup
-
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
+---
 # Weather DS Portfolio
 
 ## Objective
-Predict **daily precipitation (mm)** using physically motivated meteorological variables obtained from a production-grade weather API.  
-The project is designed to be **fully reproducible**, **testable**, and **pipeline-driven**, combining exploratory notebooks with production-ready Python modules.
+Predict **daily precipitation (mm)** using physically motivated meteorological variables obtained from a production-grade weather API.
+
+The project is designed to be **fully reproducible**, **config-driven**, **test-covered**, and **pipeline-first**, combining exploratory notebooks with production-ready Python modules.
 
 ---
 
@@ -73,9 +26,9 @@ The project is designed to be **fully reproducible**, **testable**, and **pipeli
 ### 1. Base Physical Variables
 - Temperature (min / max / mean)
 - Daily temperature range
+- Relative humidity
+- Surface pressure
 - Wind speed
-- Solar radiation
-- Weather code
 
 ### 2. Seasonal Encoding
 - Day-of-year encoded using sine / cosine (cyclical encoding)
@@ -94,14 +47,14 @@ Weather-ds-portfolio/
 │
 ├── src/                     # Production code
 │   ├── __init__.py
+│   ├── config.py            # Single source of truth (paths, versions, params)
 │   ├── fetch_open_meteo_daily.py
 │   ├── build_dataset.py
 │   ├── features.py
-│   ├── modeling_regression.py
-│   └── utils.py
+│   └── modeling_regression.py
 │
 ├── data/
-│   ├── raw/                 # Raw API downloads
+│   ├── raw/                 # Cached raw API downloads
 │   ├── processed/           # Feature-engineered datasets (versioned)
 │   └── results/             # Metrics, predictions, feature sets
 │
@@ -133,19 +86,30 @@ The project is executed end-to-end via a single reproducible pipeline:
 ./run_pipeline.sh
 ```
 
-This pipeline performs:
-1. Data ingestion from Open-Meteo API
-2. Dataset construction and feature engineering
-3. Regression modeling experiments
-4. Saving versioned outputs:
-   - Metrics (`metrics_regression_vXXX.csv`)
-   - Predictions (`predictions_best_vXXX.csv`)
-   - Feature sets (`feature_sets_vXXX.json`)
+Pipeline steps:
+1. **Fetch raw data**
+   - Downloads data from Open-Meteo
+   - Uses local cache if raw dataset already exists (API-safe)
+2. **Build processed dataset**
+   - Feature engineering
+   - Versioned dataset creation
+3. **Run modeling**
+   - Multiple regression experiments
+   - Metrics, predictions, and feature sets saved
+
+Generated artifacts:
+- Metrics: `metrics_regression_vXXX.csv`
+- Predictions: `predictions_best_vXXX.csv`
+- Feature sets: `feature_sets_vXXX.json`
 
 ---
 
 ## Modeling
-- Models evaluated: Linear Regression, Ridge, Lasso, Random Forest
+- Models evaluated:
+  - Linear Regression
+  - Ridge
+  - Lasso
+  - Random Forest
 - Time-based train / test split (no leakage)
 - Metrics:
   - MAE
@@ -154,19 +118,42 @@ This pipeline performs:
 
 ---
 
+## Model Selection Rationale
+
+Although EXP6_full and EXP5_base_memory models showed similar RMSE performance, EXP5_base_memory was selected as the final model due to its greater parsimony, robustness, and interpretability. By using a more streamlined feature set focused on base physical variables and atmospheric memory, this model offers easier interpretation and potentially better generalization, aligning with project goals for a stable and maintainable baseline.
+
+---
+
+## Configuration & Versioning
+
+All paths, dataset names, versions, and modeling parameters are centralized in:
+
+```
+src/config.py
+```
+
+This guarantees:
+- No hardcoded paths
+- Consistent versioning across scripts and tests
+- Easy reproducibility and auditing
+
+---
+
 ## Testing Strategy
 
-The project includes **automated tests** to guarantee reproducibility:
+The project includes **automated unit and integration tests** covering:
 
-- Feature correctness (lags, rolling windows, cyclical encoding)
+- Feature engineering correctness
 - Dataset construction integrity
 - Output artifact creation
-- Full pipeline execution (end-to-end)
+- Full end-to-end pipeline execution
 
 Run all tests with:
 ```
 pytest -q
 ```
+
+All tests are aligned with `config.py` (no hardcoded paths).
 
 ---
 
@@ -183,7 +170,8 @@ pip install -r requirements.txt
 ---
 
 ## Reproducibility Guarantee
-A fresh clone of the repository can:
+
+A fresh clone of this repository can:
 1. Install dependencies
 2. Run the pipeline
 3. Reproduce datasets, metrics, and predictions
@@ -194,8 +182,12 @@ A fresh clone of the repository can:
 ## Status
 - Pipeline: ✅ Stable
 - Tests: ✅ Passing
+- Config centralization: ✅ Implemented
 - Dataset versioning: ✅ Implemented
-- Next steps:
-  - Extend to additional locations
-  - Add non-linear / deep learning models
-  - Probabilistic precipitation modeling
+- Version: v1.0.0 – Stable baseline (EXP5_base_memory selected)
+
+### Next Steps
+- Extend to additional locations
+- Add probabilistic precipitation models
+- Explore deep learning architectures
+---
