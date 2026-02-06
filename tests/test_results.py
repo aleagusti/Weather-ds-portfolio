@@ -1,5 +1,6 @@
 import pandas as pd
 from pathlib import Path
+import numpy as np
 
 from src.config import (
     METRICS_FILE,
@@ -12,8 +13,18 @@ def test_metrics_file_created():
     assert path.exists()
 
     df = pd.read_csv(path)
-    assert "RMSE" in df.columns
-    assert df["RMSE"].min() > 0
+
+    expected_cols = {"MAE", "RMSE", "R2"}
+    assert expected_cols.issubset(df.columns)
+
+    for col in expected_cols:
+        assert df[col].notna().all()
+        assert pd.api.types.is_numeric_dtype(df[col])
+        assert pd.Series(df[col]).replace([float("inf"), -float("inf")], pd.NA).notna().all()
+
+    assert (df["MAE"] >= 0).all()
+    assert (df["RMSE"] >= 0).all()
+    assert ((df["R2"] >= -1) & (df["R2"] <= 1)).all()
 
 
 def test_predictions_file_created():
@@ -22,12 +33,9 @@ def test_predictions_file_created():
 
     df = pd.read_csv(path)
 
-    # columnas clave
-    assert "date" in df.columns
-    assert "precipitation_sum" in df.columns  
-    assert "y_pred" in df.columns
-    assert "error" in df.columns
-
-    # checks básicos de sanidad
+    required_cols = {"date", "precipitation_sum", "y_pred", "error"}
+    assert required_cols.issubset(df.columns)
     assert len(df) > 0
-    assert df["y_pred"].isna().sum() == 0
+    assert df["y_pred"].notna().all()
+    assert np.isfinite(df["y_pred"]).all()
+    assert np.isfinite(df["error"]).all()

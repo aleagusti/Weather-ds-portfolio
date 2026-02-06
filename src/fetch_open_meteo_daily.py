@@ -1,5 +1,6 @@
 import requests
 import pandas as pd
+import sys
 from src.config import RAW_DATASET, RAW_DIR
 
 # =========================
@@ -51,7 +52,7 @@ def fetch_daily_weather() -> pd.DataFrame:
         "timezone": TIMEZONE,
     }
 
-    response = requests.get(BASE_URL, params=params)
+    response = requests.get(BASE_URL, params=params, timeout=30)
 
     try:
         response.raise_for_status()
@@ -87,7 +88,6 @@ def fetch_daily_weather() -> pd.DataFrame:
 # =========================
 
 def main():
-    print("[STEP 1] Fetching raw data")
 
     if RAW_DATASET.exists():
         print("[SKIP] Raw dataset already exists. Using cached file.")
@@ -96,10 +96,16 @@ def main():
 
     RAW_DIR.mkdir(parents=True, exist_ok=True)
 
-    df = fetch_daily_weather()
+    try:
+        df = fetch_daily_weather()
+    except Exception as e:
+        print("[ERROR] Failed to fetch raw data from Open-Meteo API")
+        print(str(e))
+        sys.exit(1)
 
     if df.empty:
-        raise RuntimeError("Downloaded dataset is empty")
+        print("[ERROR] Downloaded dataset is empty")
+        sys.exit(1)
 
     df.to_csv(RAW_DATASET, index=False)
 

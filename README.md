@@ -21,6 +21,12 @@ The project is designed to be **fully reproducible**, **config-driven**, **test-
 
 ---
 
+## Pipeline architecture
+
+![Pipeline architecture](assets/pipeline_architecture.png)
+
+---
+
 ## Feature Groups
 
 ### 1. Base Physical Variables
@@ -58,10 +64,14 @@ Weather-ds-portfolio/
 │   ├── processed/           # Feature-engineered datasets (versioned)
 │   └── results/             # Metrics, predictions, feature sets
 │
-├── notebooks/               # Exploratory & explanatory analysis
-│   ├── 01_eda.ipynb
-│   ├── 02_feature_engineering.ipynb
-│   └── 03_modeling.ipynb
+├── notebooks/               # Exploratory, feature, models analysis and comparison
+│   ├── 01_eda.ipynb         
+│   ├── 02_eda_precipitation.ipynb 
+│   ├── 03_feature_engineering.ipynb 
+│   ├── 04_base_model.ipynb 
+│   ├── 05_xgboost.ipynb 
+│   ├── 06_neural_networks.ipynb 
+│   └── 07_model_comparison.ipynb 
 │
 ├── tests/                   # Unit + integration tests
 │   ├── __init__.py
@@ -75,6 +85,20 @@ Weather-ds-portfolio/
 ├── requirements.txt
 └── README.md
 ```
+
+---
+
+## Notebook execution order
+
+The notebooks are intended to be read and executed in the following order:
+
+1. 01_eda.ipynb – General exploratory analysis
+2. 02_eda_precipitation.ipynb – Detailed precipitation analysis
+3. 03_feature_engineering.ipynb – Feature construction and validation
+4. 04_base_model.ipynb – Baseline regression model
+5. 05_xgboost.ipynb – Gradient boosting experiments 
+6. 06_neural_networks.ipynb – Neural network experiments
+7. 07_model_comparison.ipynb – Final model comparison and selection
 
 ---
 

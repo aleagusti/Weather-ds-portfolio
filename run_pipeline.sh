@@ -30,7 +30,7 @@ python -m src.build_dataset
 # STEP 3: Run modeling
 # --------------------------------------
 echo "[STEP 3] Running modeling"
-python -m src.modeling_regression
+python -m models.selected_model
 
 echo "======================================"
 echo " Pipeline finished successfully"

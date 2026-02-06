@@ -128,6 +128,28 @@ def build_memory_features(df: pd.DataFrame) -> pd.DataFrame:
     df = add_precipitation_rolling(df)
     return df
 
+# =========================
+# Raw feature pre-selection
+# =========================
+
+RAW_FEATURE_COLUMNS = [
+    "date",
+    "temperature_2m_max",
+    "temperature_2m_min",
+    "temperature_2m_mean",
+    "precipitation_sum",
+    "relative_humidity_2m_mean",
+    "surface_pressure_mean",
+    "wind_speed_10m_mean",
+    "cloud_cover_mean",
+]
+
+def select_raw_features(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Select raw physical variables used as inputs for feature engineering.
+    This defines the raw feature contract of the project.
+    """
+    return df[RAW_FEATURE_COLUMNS].copy()
 
 # =========================
 # Feature selection helpers
