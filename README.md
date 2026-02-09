@@ -201,17 +201,5 @@ A fresh clone of this repository can:
 3. Reproduce datasets, metrics, and predictions
 4. Pass all automated tests
 
----
 
-## Status
-- Pipeline: ✅ Stable
-- Tests: ✅ Passing
-- Config centralization: ✅ Implemented
-- Dataset versioning: ✅ Implemented
-- Version: v1.0.0 – Stable baseline (EXP5_base_memory selected)
-
-### Next Steps
-- Extend to additional locations
-- Add probabilistic precipitation models
-- Explore deep learning architectures
 ---
