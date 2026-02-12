@@ -169,7 +169,7 @@ Acceptance Criteria:
 
 ## F-03: Model Improvement Iterations
 
-Status: *Not started*
+Status: *Planned*
 
 Objective:
 - Explore structural improvements to:
@@ -221,7 +221,92 @@ Acceptance Criteria:
 - The ablation grid is executed again
 - Results are compared against baseline
 
+## F-04: Production Robustness & Data Resilience
 
+Status: *Planned*
+
+Objective:
+Strengthen the pipeline against real-world production scenarios, including:
+- API rate limits
+- Schema drift
+- Corrupted or unexpected data
+- Intermittent failures
+- Structural input validation
+
+The goal is not to improve model metrics, but to improve system reliability and resilience.
+
+### US-01: API Rate Limit Handling
+
+Status: *Not started*
+
+As a systems designer:
+- I want the data fetching layer to properly handle API rate limits
+- So that automated pipeline executions do not fail unexpectedly
+
+Acceptance Criteria:
+- Explicit handling of HTTP 429 responses
+- Retry mechanism with exponential backoff
+- Configurable timeout
+- Logging of failed attempts
+- Controlled failure after maximum retries
+
+### US-02: Schema Drift Detection
+
+Status: *Not started*
+
+As a data engineer:
+- I want to validate that the dataset schema matches expectations
+- So that silent upstream changes do not corrupt the modeling pipeline
+
+Acceptance Criteria:
+- Explicit list of required columns
+- Schema validation before feature engineering
+- Clear error message if required columns are missing
+- Optional validation of expected data types
+- Unit tests simulating schema drift
+
+### US-03: Data Integrity Validation
+
+Status: *Not started*
+
+As the pipeline owner:
+- I want to validate that input data respects basic physical constraints
+- So that corrupted data does not propagate into the model
+
+Acceptance Criteria:
+- No negative precipitation values
+- No duplicated timestamps
+- No infinite values
+- Basic sanity checks on plausible ranges
+- Unit tests validating integrity checks
+
+### US-04: Structured Logging
+
+Status: *Not started*
+
+As a system operator:
+- I want structured logging instead of ad-hoc print statements
+- So that monitoring and debugging are easier in production environments
+
+Acceptance Criteria:
+- Use of Python’s logging module
+- Consistent log levels (INFO, WARNING, ERROR)
+- No raw print statements in production code
+- Meaningful and structured log messages
+
+### US-05: Failure Simulation Tests
+
+Status: *Not started*
+
+As a technical reviewer:
+- I want tests that simulate real-world failures
+- So that pipeline resilience can be validated automatically
+
+Acceptance Criteria:
+- Mocked API returning HTTP 429
+- Mocked incomplete or malformed JSON
+- Mocked schema change
+- Tests fail if validation mechanisms do not trigger
 
 # Issues
 
