@@ -9,7 +9,6 @@ from src.config import (
 )
 
 
-@pytest.mark.xfail(reason="Final selected model not implemented yet")
 def test_metrics_file_created():
     path = METRICS_FILE
     assert path.exists()
@@ -29,7 +28,6 @@ def test_metrics_file_created():
     assert ((df["R2"] >= -1) & (df["R2"] <= 1)).all()
 
 
-@pytest.mark.xfail(reason="Final selected model not implemented yet")
 def test_predictions_file_created():
     path = PREDICTIONS_FILE
     assert path.exists()

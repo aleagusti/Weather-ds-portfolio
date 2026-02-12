@@ -4,24 +4,31 @@
 ## Objective
 Predict **daily precipitation (mm)** using physically motivated meteorological variables obtained from a production-grade weather API.
 
-The project is designed to be **fully reproducible**, **config-driven**, **test-covered**, and **pipeline-first**, combining exploratory notebooks with production-ready Python modules.
+The project is fully:
+- Reproducible
+- Config-driven
+- Test-covered
+- Pipeline-first
+- Versioned
+
+Current stable version: **v1.2.0**
 
 ---
 
 ## Data Source
-- **API:** Open-Meteo Historical Weather API
-- **Temporal resolution:** Daily
-- **Location:** Miami, FL (initial iteration)
-- **Time span:** 1990 – present
+- API: Open-Meteo Historical Weather API
+- Temporal resolution: Daily
+- Location: Miami, FL (initial iteration)
+- Time span: 1990 – present
 
 ---
 
 ## Target Variable
-- `precipitation_sum` (mm)
+`precipitation_sum` (mm)
 
 ---
 
-## Pipeline architecture
+## Pipeline Architecture
 
 ![Pipeline architecture](assets/pipeline_architecture.png)
 
@@ -30,7 +37,7 @@ The project is designed to be **fully reproducible**, **config-driven**, **test-
 ## Feature Groups
 
 ### 1. Base Physical Variables
-- Temperature (min / max / mean)
+- Temperature (mean)
 - Daily temperature range
 - Relative humidity
 - Surface pressure
@@ -44,6 +51,12 @@ The project is designed to be **fully reproducible**, **config-driven**, **test-
 - Lagged precipitation (1, 3, 7 days)
 - Rolling precipitation accumulations (3, 7 days)
 
+All feature engineering is implemented in:
+
+```
+src/features.py
+```
+
 ---
 
 ## Project Structure
@@ -51,36 +64,31 @@ The project is designed to be **fully reproducible**, **config-driven**, **test-
 ```
 Weather-ds-portfolio/
 │
-├── src/                     # Production code
-│   ├── __init__.py
-│   ├── config.py            # Single source of truth (paths, versions, params)
+├── src/                     
+│   ├── config.py            
 │   ├── fetch_open_meteo_daily.py
 │   ├── build_dataset.py
 │   ├── features.py
-│   └── modeling_regression.py
+│   └── evaluation.py
+│
+├── models/
+│   └── selected_model.py    # Production model runner + model factory
 │
 ├── data/
-│   ├── raw/                 # Cached raw API downloads
-│   ├── processed/           # Feature-engineered datasets (versioned)
-│   └── results/             # Metrics, predictions, feature sets
+│   ├── raw/
+│   ├── processed/
+│   └── results/
 │
-├── notebooks/               # Exploratory, feature, models analysis and comparison
+├── notebooks/
 │   ├── 01_eda.ipynb         
 │   ├── 02_eda_precipitation.ipynb 
 │   ├── 03_feature_engineering.ipynb 
 │   ├── 04_base_model.ipynb 
-│   ├── 05_xgboost.ipynb 
-│   ├── 06_neural_networks.ipynb 
+│   ├── 05_xgboost_model.ipynb 
+│   ├── 06_mlp_model.ipynb 
 │   └── 07_model_comparison.ipynb 
 │
-├── tests/                   # Unit + integration tests
-│   ├── __init__.py
-│   ├── test_features.py
-│   ├── test_build_dataset.py
-│   ├── test_results.py
-│   └── test_pipeline.py
-│
-├── pytest.ini
+├── tests/
 ├── run_pipeline.sh
 ├── requirements.txt
 └── README.md
@@ -88,118 +96,163 @@ Weather-ds-portfolio/
 
 ---
 
-## Notebook execution order
+## Notebook Execution Order
 
-The notebooks are intended to be read and executed in the following order:
+1. 01_eda.ipynb
+2. 02_eda_precipitation.ipynb
+3. 03_feature_engineering.ipynb
+4. 04_base_model.ipynb
+5. 05_xgboost_model.ipynb
+6. 06_mlp_model.ipynb
+7. 07_model_comparison.ipynb
 
-1. 01_eda.ipynb – General exploratory analysis
-2. 02_eda_precipitation.ipynb – Detailed precipitation analysis
-3. 03_feature_engineering.ipynb – Feature construction and validation
-4. 04_base_model.ipynb – Baseline regression model
-5. 05_xgboost.ipynb – Gradient boosting experiments 
-6. 06_neural_networks.ipynb – Neural network experiments
-7. 07_model_comparison.ipynb – Final model comparison and selection
+Notebook 07 performs model comparison and final selection.
 
 ---
 
-## Pipeline Overview
+## End-to-End Pipeline
 
-The project is executed end-to-end via a single reproducible pipeline:
+---
+
+## Installation
+
+Clone the repository and install dependencies:
+
+```
+git clone <repository_url>
+cd Weather-ds-portfolio
+pip install -r requirements.txt
+```
+
+Dependencies are defined in:
+
+```
+requirements.txt
+```
+
+This ensures all required libraries (scikit-learn, xgboost, pandas, numpy, etc.) are installed before running the pipeline.
+
+---
+
+Run the entire project with:
 
 ```
 ./run_pipeline.sh
 ```
 
 Pipeline steps:
-1. **Fetch raw data**
-   - Downloads data from Open-Meteo
-   - Uses local cache if raw dataset already exists (API-safe)
-2. **Build processed dataset**
-   - Feature engineering
-   - Versioned dataset creation
-3. **Run modeling**
-   - Multiple regression experiments
-   - Metrics, predictions, and feature sets saved
+
+1. Fetch raw data (API with local cache)
+2. Build processed dataset (feature engineering)
+3. Train selected production model
+4. Evaluate and persist artifacts
 
 Generated artifacts:
-- Metrics: `metrics_regression_vXXX.csv`
-- Predictions: `predictions_best_vXXX.csv`
-- Feature sets: `feature_sets_vXXX.json`
+
+```
+models/final_model.pkl
+data/results/metrics_regression_<model>_<version>.csv
+data/results/predictions_best_<model>_<version>.csv
+```
+
+The pipeline is deterministic given the same dataset and version.
 
 ---
 
-## Modeling
-- Models evaluated:
-  - Linear Regression
-  - Ridge
-  - Lasso
-  - Random Forest
-- Time-based train / test split (no leakage)
-- Metrics:
-  - MAE
-  - RMSE
-  - R²
+## Models Evaluated
+
+- Linear Regression
+- Ridge
+- Lasso
+- Random Forest
+- XGBoost
+- Neural Network (MLP)
+
+All models:
+- Use temporal train/test split (no leakage)
+- Use standardized evaluation via `src/evaluation.py`
+- Are compared under identical experimental structure
 
 ---
 
-## Model Selection Rationale
+## Model Selection
 
-Although EXP6_full and EXP5_base_memory models showed similar RMSE performance, EXP5_base_memory was selected as the final model due to its greater parsimony, robustness, and interpretability. By using a more streamlined feature set focused on base physical variables and atmospheric memory, this model offers easier interpretation and potentially better generalization, aligning with project goals for a stable and maintainable baseline.
+Final selected configuration:
+- Experiment: EXP5_base_memory
+- Model family: MLP
+- Architecture: MLP_small
 
----
+Selection rationale:
+- Strong RMSE reduction vs persistence baseline
+- Parsimonious feature set
+- Stable generalization
+- Physically interpretable structure
 
-## Configuration & Versioning
-
-All paths, dataset names, versions, and modeling parameters are centralized in:
+The selected model is defined centrally in:
 
 ```
 src/config.py
 ```
 
-This guarantees:
-- No hardcoded paths
-- Consistent versioning across scripts and tests
-- Easy reproducibility and auditing
+`models/selected_model.py` reads that configuration and runs the production model without modifying internal logic.
+
+---
+
+## Configuration & Versioning
+
+All configuration lives in:
+
+```
+src/config.py
+```
+
+Includes:
+- Paths
+- Dataset version
+- Selected experiment
+- Selected model family
+- Random state
+- Test fraction
+
+Versioning strategy:
+- Semantic versioning
+- Minor bump for new stable features
+- Patch bump for fixes
 
 ---
 
 ## Testing Strategy
 
-The project includes **automated unit and integration tests** covering:
+Automated tests cover:
 
-- Feature engineering correctness
-- Dataset construction integrity
-- Output artifact creation
-- Full end-to-end pipeline execution
+- Feature correctness
+- Dataset integrity
+- Artifact generation
+- Full pipeline execution
+- Model persistence
 
-Run all tests with:
+Run tests:
+
 ```
 pytest -q
 ```
 
-All tests are aligned with `config.py` (no hardcoded paths).
+All tests must pass for a release to be considered valid.
 
 ---
 
-## Environment Setup
+## Reproducibility
 
-Using Conda (recommended):
+A fresh clone of the repository can:
 
-```
-conda create -n weather-ds python=3.12
-conda activate weather-ds
-pip install -r requirements.txt
-```
-
----
-
-## Reproducibility Guarantee
-
-A fresh clone of this repository can:
 1. Install dependencies
 2. Run the pipeline
-3. Reproduce datasets, metrics, and predictions
-4. Pass all automated tests
+3. Regenerate datasets
+4. Reproduce metrics
+5. Reproduce predictions
+6. Persist final trained model
+7. Pass all automated tests
 
+This ensures full auditability and reproducibility.
 
 ---

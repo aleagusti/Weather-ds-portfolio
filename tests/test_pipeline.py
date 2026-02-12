@@ -12,14 +12,16 @@ def test_pipeline_runs_without_error():
 
     assert result.returncode == 0, f"Pipeline failed:\n{result.stderr}"
 
-@pytest.mark.xfail(reason="Results artifacts generated only after final model selection")
+from src.config import RESULTS_DIR, SELECTED_MODEL_FAMILY, VERSION
+
 def test_pipeline_outputs_exist():
     # Assuming the test checks for existence of pipeline output files
     output_files = [
         "models/final_model.pkl",
-        "results/metrics.csv",
-        "results/predictions.csv",
+        RESULTS_DIR / f"predictions_best_{SELECTED_MODEL_FAMILY}_{VERSION}.csv",
+        RESULTS_DIR / f"metrics_regression_{SELECTED_MODEL_FAMILY}_{VERSION}.csv",
     ]
     for file_path in output_files:
         path = Path(file_path)
         assert path.exists()
+

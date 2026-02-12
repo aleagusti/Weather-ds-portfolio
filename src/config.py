@@ -29,10 +29,20 @@ DATE_COL = "date"
 # Temporal split configuration
 # =========================
 TEST_FRACTION = 0.20
+RANDOM_STATE = 42
+
+# =========================
+# Model selection (single source of truth)
+# =========================
+
+SELECTED_MODEL_FAMILY = "mlp"
+SELECTED_MODEL_NAME = "MLP_small"
+SELECTED_EXPERIMENT = "EXP5_base_memory"
 
 # =========================
 # Outputs
 # =========================
-METRICS_FILE = RESULTS_DIR / f"metrics_regression_{VERSION}.csv"
-PREDICTIONS_FILE = RESULTS_DIR / f"predictions_best_{VERSION}.csv"
-FEATURE_SETS_FILE = RESULTS_DIR / f"feature_sets_{VERSION}.json"
+METRICS_FILE = RESULTS_DIR / f"metrics_regression_{SELECTED_MODEL_FAMILY}_{VERSION}.csv"
+PREDICTIONS_FILE = RESULTS_DIR / f"predictions_best_{SELECTED_MODEL_FAMILY}_{VERSION}.csv"
+FEATURE_SETS_FILE = RESULTS_DIR / f"feature_sets_{SELECTED_EXPERIMENT}_{VERSION}.json"
+
